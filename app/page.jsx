@@ -17,42 +17,60 @@ import React, { useEffect, useMemo, useState } from "react";
 // Supplements
 // -----------------------
 const SUPPLEMENTS = {
-  libido: [
+  vitality: [
     {
       name: "Ashwagandha (KSM-66)",
       dose: "300–600 mg",
       timing: "Morning or evening with food",
-      note: "Adaptogen — lowers cortisol, supports testosterone & sexual function."
+      note: "Adaptogen — reduces cortisol, supports sustained energy, restful sleep, and overall hormonal balance."
     },
     {
-      name: "Zinc",
-      dose: "25–40 mg",
-      timing: "With dinner (not on empty stomach)",
-      note: "Essential for testosterone synthesis. Most common deficiency in active men."
+      name: "Vitamin B12 (Methylcobalamin)",
+      dose: "500–1,000 mcg",
+      timing: "Morning with or without food",
+      note: "Powers cellular energy production and nerve function. Low B12 is a leading driver of fatigue and brain fog."
     },
     {
-      name: "Maca Root",
-      dose: "1.5–3 g",
-      timing: "Morning with food",
-      note: "Peruvian adaptogen with clinical evidence for libido and energy."
+      name: "Saffron Extract (Affron)",
+      dose: "28–30 mg",
+      timing: "Morning or evening with food",
+      note: "Clinically studied for mood elevation, reduced anxiety, and mental clarity. Gentle and well-tolerated."
+    },
+    {
+      name: "Magnesium Glycinate",
+      dose: "300–400 mg",
+      timing: "Evening, 1 hr before bed",
+      note: "Promotes deep sleep, reduces stress-driven fatigue, and supports calm nervous system function."
     },
     {
       name: "Vitamin D3 + K2",
       dose: "3,000–5,000 IU D3 / 100 mcg K2",
       timing: "With largest meal (fat improves absorption)",
-      note: "Critical co-factor for testosterone. K2 directs calcium properly."
+      note: "Foundation supplement for energy, immune resilience, and hormonal health. K2 directs calcium properly."
+    },
+    {
+      name: "Zinc",
+      dose: "25–40 mg",
+      timing: "With dinner (not on empty stomach)",
+      note: "Supports hormonal balance, immune function, and physical vitality. One of the most common deficiencies."
+    },
+    {
+      name: "Maca Root",
+      dose: "1.5–3 g",
+      timing: "Morning with food",
+      note: "Peruvian adaptogen — boosts stamina, mental drive, and overall sense of wellbeing."
     },
     {
       name: "Tongkat Ali",
       dose: "200–400 mg (standardised extract)",
       timing: "Morning, away from food",
-      note: "Supports free testosterone by reducing SHBG. Cycle 5 days on / 2 off."
+      note: "Supports free testosterone and physical energy levels. Cycle 5 days on / 2 off."
     },
     {
       name: "L-Arginine",
       dose: "3–6 g",
       timing: "30 min before activity or on empty stomach",
-      note: "Nitric oxide precursor — improves blood flow and arousal response."
+      note: "Nitric oxide precursor — promotes healthy circulation, physical performance, and cardiovascular energy."
     }
   ],
   gut: [
@@ -868,7 +886,7 @@ export default function Page() {
         <div className="card" style={{ marginTop: 12 }}>
           <div className="cardTitle">Supplement Stack</div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.70)", marginBottom: 14 }}>
-            Targeted to support libido, hormonal balance, and anti-inflammatory gut health. Not medical advice — consult a clinician before starting.
+            Targeted to support energy, mental health, sleep, and anti-inflammatory gut function. Not medical advice — consult a clinician before starting.
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -876,7 +894,7 @@ export default function Page() {
             <div>
               <div style={styles.suppHeader}>
                 <span style={styles.suppDot} />
-                Libido &amp; Hormonal Support
+                Energy &amp; Mental Wellness
               </div>
               <table className="table" style={{ marginTop: 8 }}>
                 <thead>
@@ -887,7 +905,7 @@ export default function Page() {
                   </tr>
                 </thead>
                 <tbody>
-                  {SUPPLEMENTS.libido.map((s) => (
+                  {SUPPLEMENTS.vitality.map((s) => (
                     <tr key={s.name}>
                       <td>
                         <div style={{ fontWeight: 700, color: "rgba(255,255,255,0.90)" }}>{s.name}</div>
@@ -933,9 +951,10 @@ export default function Page() {
 
           <div className="sep" />
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <span className="pill">Priority starts: <b>Omega-3, Vitamin D3, Zinc, Probiotics</b></span>
-            <span className="pill">Add adaptogens (Ashwagandha, Tongkat Ali) once base is dialled in</span>
-            <span className="pill">Take Magnesium PM — it stacks with sleep for gut repair</span>
+            <span className="pill">Start here: <b>B12, Vitamin D3, Magnesium Glycinate, Omega-3</b></span>
+            <span className="pill">Add Ashwagandha + Saffron for mood and sleep once the base is dialled in</span>
+            <span className="pill">Magnesium PM + Saffron = powerful sleep and recovery combo</span>
+            <span className="pill">Probiotics + L-Glutamine = gut lining repair foundation</span>
           </div>
         </div>
 
