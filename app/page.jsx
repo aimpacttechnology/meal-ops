@@ -14,6 +14,94 @@ import React, { useEffect, useMemo, useState } from "react";
  */
 
 // -----------------------
+// Supplements
+// -----------------------
+const SUPPLEMENTS = {
+  libido: [
+    {
+      name: "Ashwagandha (KSM-66)",
+      dose: "300–600 mg",
+      timing: "Morning or evening with food",
+      note: "Adaptogen — lowers cortisol, supports testosterone & sexual function."
+    },
+    {
+      name: "Zinc",
+      dose: "25–40 mg",
+      timing: "With dinner (not on empty stomach)",
+      note: "Essential for testosterone synthesis. Most common deficiency in active men."
+    },
+    {
+      name: "Maca Root",
+      dose: "1.5–3 g",
+      timing: "Morning with food",
+      note: "Peruvian adaptogen with clinical evidence for libido and energy."
+    },
+    {
+      name: "Vitamin D3 + K2",
+      dose: "3,000–5,000 IU D3 / 100 mcg K2",
+      timing: "With largest meal (fat improves absorption)",
+      note: "Critical co-factor for testosterone. K2 directs calcium properly."
+    },
+    {
+      name: "Tongkat Ali",
+      dose: "200–400 mg (standardised extract)",
+      timing: "Morning, away from food",
+      note: "Supports free testosterone by reducing SHBG. Cycle 5 days on / 2 off."
+    },
+    {
+      name: "L-Arginine",
+      dose: "3–6 g",
+      timing: "30 min before activity or on empty stomach",
+      note: "Nitric oxide precursor — improves blood flow and arousal response."
+    }
+  ],
+  gut: [
+    {
+      name: "Omega-3 (EPA/DHA)",
+      dose: "2–4 g total EPA+DHA",
+      timing: "With any meal containing fat",
+      note: "Strongest evidence for reducing systemic inflammation. Amplifies fish in your diet."
+    },
+    {
+      name: "Probiotics (multi-strain)",
+      dose: "20–50 billion CFU",
+      timing: "Morning on empty stomach or just before bed",
+      note: "Lactobacillus + Bifidobacterium mix. Supports microbiome diversity alongside diet."
+    },
+    {
+      name: "L-Glutamine",
+      dose: "5–10 g",
+      timing: "First thing AM on empty stomach",
+      note: "Primary fuel for gut lining cells — tightens leaky gut and reduces permeability."
+    },
+    {
+      name: "Curcumin (BCM-95 or + Piperine)",
+      dose: "500–1,000 mg",
+      timing: "With meals",
+      note: "Bioavailable turmeric extract. Stacks with dietary turmeric for stronger anti-inflammatory effect."
+    },
+    {
+      name: "Magnesium Glycinate",
+      dose: "300–400 mg",
+      timing: "Evening, 1 hr before bed",
+      note: "Anti-inflammatory, aids gut motility, improves sleep quality and recovery."
+    },
+    {
+      name: "Digestive Enzymes",
+      dose: "1–2 capsules",
+      timing: "With each main meal",
+      note: "Supports protein and fat breakdown — reduces bloat and maximises nutrient extraction."
+    },
+    {
+      name: "Quercetin",
+      dose: "500–1,000 mg",
+      timing: "With meals",
+      note: "Flavonoid antioxidant — reduces gut inflammation, stabilises mast cells, pairs well with Omega-3."
+    }
+  ]
+};
+
+// -----------------------
 // Theme / Rotation
 // -----------------------
 const THEMES = [
@@ -776,6 +864,81 @@ export default function Page() {
           </div>
         </div>
 
+        {/* SUPPLEMENTS */}
+        <div className="card" style={{ marginTop: 12 }}>
+          <div className="cardTitle">Supplement Stack</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.70)", marginBottom: 14 }}>
+            Targeted to support libido, hormonal balance, and anti-inflammatory gut health. Not medical advice — consult a clinician before starting.
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            {/* Libido */}
+            <div>
+              <div style={styles.suppHeader}>
+                <span style={styles.suppDot} />
+                Libido &amp; Hormonal Support
+              </div>
+              <table className="table" style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>Supplement</th>
+                    <th>Dose</th>
+                    <th>Timing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SUPPLEMENTS.libido.map((s) => (
+                    <tr key={s.name}>
+                      <td>
+                        <div style={{ fontWeight: 700, color: "rgba(255,255,255,0.90)" }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 2 }}>{s.note}</div>
+                      </td>
+                      <td style={{ whiteSpace: "nowrap", color: "#a78bfa" }}>{s.dose}</td>
+                      <td style={{ fontSize: 12, color: "rgba(255,255,255,0.62)" }}>{s.timing}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Gut / Anti-inflammatory */}
+            <div>
+              <div style={styles.suppHeader}>
+                <span style={{ ...styles.suppDot, background: "#34d399" }} />
+                Anti-Inflammatory Gut Health
+              </div>
+              <table className="table" style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>Supplement</th>
+                    <th>Dose</th>
+                    <th>Timing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SUPPLEMENTS.gut.map((s) => (
+                    <tr key={s.name}>
+                      <td>
+                        <div style={{ fontWeight: 700, color: "rgba(255,255,255,0.90)" }}>{s.name}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 2 }}>{s.note}</div>
+                      </td>
+                      <td style={{ whiteSpace: "nowrap", color: "#34d399" }}>{s.dose}</td>
+                      <td style={{ fontSize: 12, color: "rgba(255,255,255,0.62)" }}>{s.timing}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="sep" />
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <span className="pill">Priority starts: <b>Omega-3, Vitamin D3, Zinc, Probiotics</b></span>
+            <span className="pill">Add adaptogens (Ashwagandha, Tongkat Ali) once base is dialled in</span>
+            <span className="pill">Take Magnesium PM — it stacks with sleep for gut repair</span>
+          </div>
+        </div>
+
         {/* PLAN TABLE */}
         <div className="card" style={{ marginTop: 12 }}>
           <div className="cardTitle">Weekly Plan</div>
@@ -887,6 +1050,24 @@ const styles = {
     borderRadius: 12,
     padding: "9px 12px",
     cursor: "pointer"
+  },
+  suppHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: 13,
+    fontWeight: 800,
+    color: "rgba(255,255,255,0.80)",
+    textTransform: "uppercase",
+    letterSpacing: 0.35
+  },
+  suppDot: {
+    display: "inline-block",
+    width: 8,
+    height: 8,
+    borderRadius: "50%",
+    background: "#a78bfa",
+    flexShrink: 0
   }
 };
 
@@ -1004,5 +1185,6 @@ const css = `
 
   @media (max-width: 980px){
     .grid3 { grid-template-columns: 1fr !important; }
+    .suppGrid { grid-template-columns: 1fr !important; }
   }
 `;
