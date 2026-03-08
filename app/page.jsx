@@ -134,13 +134,13 @@ const THEMES = [
 const INGREDIENTS = {
   // Proteins
   salmon: { label: "Salmon", score: +2, flags: { glutenFree: true, dairyFree: true } },
-  sardines: { label: "Sardines", score: +2, flags: { glutenFree: true, dairyFree: true } },
+  sardines: { label: "Sardines", score: +2, unit: "can", perServing: 1, flags: { glutenFree: true, dairyFree: true } },
   chickenThighs: { label: "Chicken thighs", score: +1, flags: { glutenFree: true, dairyFree: true } },
   groundTurkey: { label: "Ground turkey", score: +1, flags: { glutenFree: true, dairyFree: true } },
   grassBeef: { label: "Grass-fed beef", score: +1, flags: { glutenFree: true, dairyFree: true } },
-  eggs: { label: "Eggs", score: 0, flags: { glutenFree: true, dairyFree: true } },
+  eggs: { label: "Eggs", score: 0, unit: "each", perServing: 3, flags: { glutenFree: true, dairyFree: true } },
   shrimp: { label: "Shrimp", score: +1, flags: { glutenFree: true, dairyFree: true } },
-  lentils: { label: "Lentils", score: +1, flags: { glutenFree: true, dairyFree: true } },
+  lentils: { label: "Lentils", score: +1, unit: "cup", perServing: 0.5, flags: { glutenFree: true, dairyFree: true } },
 
   // Veg
   spinach: { label: "Spinach", score: +2, flags: { glutenFree: true, dairyFree: true } },
@@ -153,28 +153,112 @@ const INGREDIENTS = {
   greenBeans: { label: "Green beans", score: +1, flags: { glutenFree: true, dairyFree: true } },
   sweetPotato: { label: "Sweet potato", score: +1, flags: { glutenFree: true, dairyFree: true } },
   cauliflowerRice: { label: "Cauliflower rice", score: +1, flags: { glutenFree: true, dairyFree: true } },
-  onions: { label: "Onions", score: +1, flags: { glutenFree: true, dairyFree: true } },
-  garlic: { label: "Garlic", score: +2, flags: { glutenFree: true, dairyFree: true } },
+  onions: { label: "Onions", score: +1, flags: { glutenFree: true, dairyFree: true, pantry: true } },
+  garlic: { label: "Garlic", score: +2, flags: { glutenFree: true, dairyFree: true, pantry: true } },
   tomatoes: { label: "Tomatoes", score: 0, flags: { glutenFree: true, dairyFree: true, nightshade: true } },
 
   // Fats / extras
-  oliveOil: { label: "Olive oil", score: +2, flags: { glutenFree: true, dairyFree: true } },
+  oliveOil: { label: "Olive oil", score: +2, flags: { glutenFree: true, dairyFree: true, pantry: true } },
   avocado: { label: "Avocado", score: +2, flags: { glutenFree: true, dairyFree: true } },
   walnuts: { label: "Walnuts", score: +1, flags: { glutenFree: true, dairyFree: true } },
   chia: { label: "Chia seeds", score: +1, flags: { glutenFree: true, dairyFree: true } },
 
   // Flavor / pantry
-  turmeric: { label: "Turmeric", score: +2, flags: { glutenFree: true, dairyFree: true } },
-  ginger: { label: "Ginger", score: +2, flags: { glutenFree: true, dairyFree: true } },
-  tamari: { label: "Tamari (GF)", score: +1, flags: { glutenFree: true, dairyFree: true } },
+  turmeric: { label: "Turmeric", score: +2, flags: { glutenFree: true, dairyFree: true, pantry: true } },
+  ginger: { label: "Ginger", score: +2, flags: { glutenFree: true, dairyFree: true, pantry: true } },
+  tamari: { label: "Tamari (GF)", score: +1, flags: { glutenFree: true, dairyFree: true, pantry: true } },
   coconutMilk: { label: "Coconut milk", score: +1, flags: { glutenFree: true, dairyFree: true } },
-  tahini: { label: "Tahini", score: +1, flags: { glutenFree: true, dairyFree: true } },
+  tahini: { label: "Tahini", score: +1, flags: { glutenFree: true, dairyFree: true, pantry: true } },
 
   // Items to avoid (optional)
   dairy: { label: "Dairy", score: -1, flags: { glutenFree: true, dairyFree: false } },
   gluten: { label: "Gluten", score: -2, flags: { glutenFree: false, dairyFree: true } },
   seedOil: { label: "Seed oil", score: -2, flags: { glutenFree: true, dairyFree: true, seedOil: true } }
 };
+
+// -----------------------
+// HEB Shopper Integration
+// -----------------------
+const HEB_META = {
+  salmon:        { category: "seafood",       query: "salmon fillet skin-on",           targetSize: "lb" },
+  sardines:      { category: "seafood",       query: "sardines canned in water",        targetSize: "can" },
+  chickenThighs: { category: "meat",          query: "chicken thighs boneless skinless",targetSize: "lb" },
+  groundTurkey:  { category: "meat",          query: "ground turkey 93% lean",          targetSize: "lb" },
+  grassBeef:     { category: "meat",          query: "grass fed ground beef",           targetSize: "lb" },
+  eggs:          { category: "dairy_eggs",    query: "large eggs",                      targetSize: "dozen", toQty: (n) => Math.ceil(n / 12) || 1 },
+  shrimp:        { category: "seafood",       query: "shrimp large raw peeled deveined",targetSize: "lb" },
+  lentils:       { category: "dry_goods",     query: "green or brown lentils",          targetSize: "lb bag" },
+  spinach:       { category: "produce",       query: "baby spinach",                    targetSize: "5 oz bag", toQty: (n) => Math.ceil(n / 5) || 1 },
+  broccoli:      { category: "produce",       query: "broccoli",                        targetSize: "head",     toQty: (n) => Math.ceil(n / 3) || 1 },
+  zucchini:      { category: "produce",       query: "zucchini",                        targetSize: "each",     toQty: (n) => Math.ceil(n / 2) || 1 },
+  asparagus:     { category: "produce",       query: "asparagus bunch",                 targetSize: "bunch",    toQty: (n) => Math.ceil(n / 4) || 1 },
+  cabbage:       { category: "produce",       query: "green cabbage",                   targetSize: "head",     toQty: (n) => Math.ceil(n / 8) || 1 },
+  peppers:       { category: "produce",       query: "bell peppers",                    targetSize: "each",     toQty: (n) => Math.ceil(n / 1.5) || 1 },
+  mushrooms:     { category: "produce",       query: "white or cremini mushrooms",      targetSize: "8 oz pkg", toQty: (n) => Math.ceil(n / 3) || 1 },
+  greenBeans:    { category: "produce",       query: "fresh green beans",               targetSize: "lb bag",   toQty: (n) => Math.ceil(n / 4) || 1 },
+  sweetPotato:   { category: "produce",       query: "sweet potatoes",                  targetSize: "each",     toQty: (n) => Math.ceil(n / 2) || 1 },
+  cauliflowerRice:{ category: "produce",      query: "cauliflower rice fresh or frozen",targetSize: "12 oz bag",toQty: (n) => Math.ceil(n / 3) || 1 },
+  tomatoes:      { category: "produce",       query: "roma or vine tomatoes",           targetSize: "each",     toQty: (n) => Math.ceil(n / 1.5) || 1 },
+  onions:        { category: "produce",       query: "yellow onion",                    targetSize: "each",     toQty: (n) => Math.ceil(n / 1) || 1 },
+  garlic:        { category: "produce",       query: "garlic bulb",                     targetSize: "each",     toQty: (n) => Math.ceil(n / 10) || 1 },
+  oliveOil:      { category: "pantry",        query: "extra virgin olive oil",          targetSize: "16 oz bottle" },
+  avocado:       { category: "produce",       query: "hass avocado",                    targetSize: "each",     toQty: (n) => Math.ceil(n) || 1 },
+  walnuts:       { category: "pantry",        query: "raw walnuts",                     targetSize: "8 oz bag" },
+  chia:          { category: "pantry",        query: "chia seeds",                      targetSize: "12 oz bag" },
+  turmeric:      { category: "pantry",        query: "ground turmeric",                 targetSize: "jar" },
+  ginger:        { category: "pantry",        query: "fresh ginger root",               targetSize: "each" },
+  tamari:        { category: "pantry",        query: "gluten free tamari soy sauce",    targetSize: "10 oz bottle" },
+  coconutMilk:   { category: "pantry",        query: "coconut milk full fat can",       targetSize: "can" },
+  tahini:        { category: "pantry",        query: "tahini sesame paste",             targetSize: "jar" }
+};
+
+function exportToHEBPlan(groceryList, servings, rules) {
+  const dietNotes = [];
+  if (rules.excludeGluten) dietNotes.push("gluten-free items only");
+  if (rules.excludeDairy) dietNotes.push("dairy-free");
+  if (rules.excludeNightshades) dietNotes.push("no nightshades");
+
+  const items = groceryList
+    .filter((g) => HEB_META[g.ingredientKey])
+    .map((g) => {
+      const meta = HEB_META[g.ingredientKey];
+      const rawQty = meta.toQty ? meta.toQty(g.amount) : Math.ceil(g.amount * 10) / 10;
+      return {
+        category: meta.category,
+        name: label(g.ingredientKey),
+        query: meta.query,
+        target_size: meta.targetSize,
+        quantity: rawQty,
+        notes: `${formatAmount(g.amount, g.unit)} ${g.unit} needed for ${servings} people`
+      };
+    });
+
+  return {
+    plan_version: "1.0",
+    merchant: "HEB",
+    generated_by: "Meal Ops Board",
+    week_start: new Date().toISOString().slice(0, 10),
+    fulfillment: {
+      type: "curbside_or_delivery",
+      store_selection: "ask_user_first",
+      zip_fallback: "78701"
+    },
+    preferences: {
+      prefer_store_brands: true,
+      budget_mode: "good_value_not_ultra_premium",
+      require_human_approval_before_checkout: true,
+      units: "US",
+      notes: dietNotes.length ? dietNotes : ["Anti-inflammatory diet — prioritise fresh and organic where available"]
+    },
+    substitutions_policy: {
+      allow_brand_subs: true,
+      allow_size_subs_within_percent: 25,
+      must_confirm_price_delta_percent: 15,
+      always_ask_for: ["salmon", "shrimp", "grassBeef"]
+    },
+    items
+  };
+}
 
 // Templates for meals: each returns a title + grocery-ish items.
 const MEAL_TEMPLATES = [
@@ -289,7 +373,7 @@ const MEAL_TEMPLATES = [
 
 // Pools
 const PROTEINS = ["salmon", "sardines", "chickenThighs", "groundTurkey", "grassBeef", "eggs", "shrimp", "lentils"];
-const VEG = ["spinach", "broccoli", "zucchini", "asparagus", "cabbage", "peppers", "mushrooms", "greenBeans", "sweetPotato", "cauliflowerRice", "tomatoes", "onions", "garlic"];
+const VEG = ["spinach", "broccoli", "zucchini", "asparagus", "cabbage", "peppers", "mushrooms", "greenBeans", "sweetPotato", "cauliflowerRice", "tomatoes"];
 
 const FLAVOR_SETS = {
   "lemon-herb": ["oliveOil", "garlic"],
@@ -313,6 +397,8 @@ function label(key) {
   return INGREDIENTS[key]?.label ?? key;
 }
 function qty(ingredientKey, amount, unit) {
+  const ing = INGREDIENTS[ingredientKey];
+  if (ing?.unit) return { ingredientKey, amount: ing.perServing ?? amount, unit: ing.unit };
   return { ingredientKey, amount, unit };
 }
 function flavorLabel(flavor) {
@@ -394,7 +480,8 @@ function aggregateGroceryList(plan, servings) {
       if (!meal) continue;
       for (const it of meal.items) {
         const key = it.ingredientKey;
-        const amount = it.amount * servings;
+        const isPantry = INGREDIENTS[key]?.flags?.pantry;
+        const amount = isPantry ? it.amount : it.amount * servings;
         const unit = it.unit;
 
         const existing = map.get(key);
@@ -428,9 +515,28 @@ function aggregateGroceryList(plan, servings) {
   });
 }
 
-function formatAmount(a) {
-  const rounded = Math.round(a * 100) / 100;
-  return String(rounded);
+function formatAmount(a, unit) {
+  // Discrete items — always whole, round up
+  if (unit === "each" || unit === "can") return String(Math.ceil(a));
+  // Cloves — whole number
+  if (unit === "clove") return String(Math.round(a));
+  // Pounds — round to nearest ¼ lb and show fractions
+  if (unit === "lb") {
+    const q = Math.round(a * 4) / 4;
+    const whole = Math.floor(q);
+    const frac = Math.round((q - whole) * 4);
+    const fracStr = frac === 1 ? "¼" : frac === 2 ? "½" : frac === 3 ? "¾" : "";
+    if (whole === 0) return fracStr || "¼";
+    return fracStr ? `${whole} ${fracStr}` : String(whole);
+  }
+  // Cups — round to nearest ½
+  if (unit === "cup") {
+    const h = Math.round(a * 2) / 2;
+    return h === Math.floor(h) ? String(h) : `${Math.floor(h)}½`;
+  }
+  // tbsp / tsp — round to 1 decimal, drop trailing zero
+  const r = Math.round(a * 4) / 4;
+  return r % 1 === 0 ? String(r) : String(+r.toFixed(2));
 }
 
 function topOffenders(plan) {
@@ -570,6 +676,16 @@ export default function Page() {
   const [repeatWindowProtein, setRepeatWindowProtein] = useState(4);
   const [repeatWindowTitle, setRepeatWindowTitle] = useState(4);
 
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
+  const [expandedMealId, setExpandedMealId] = useState(null);
+  const [showShopPanel, setShowShopPanel] = useState(false);
+  const [hebStatus, setHebStatus] = useState(null);
+  const [instacartLoading, setInstacartLoading] = useState(false);
+  const [instacartUrl, setInstacartUrl] = useState(null);
+  const [instacartError, setInstacartError] = useState(null);
+  const [showHEBAgent, setShowHEBAgent] = useState(false);
+
   const [state, setState] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("meal-ops-state");
@@ -584,8 +700,7 @@ export default function Page() {
 
   useEffect(() => {
     if (!state) {
-      const wk = generateWeekPlan({ startDateISO: startDate, rules, repeatWindowProtein, repeatWindowTitle });
-      setState({ ...wk, startDate, servings, rules, repeatWindowProtein, repeatWindowTitle });
+      generateWithAI();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -615,35 +730,71 @@ export default function Page() {
   const offenders = useMemo(() => topOffenders(plan), [plan]);
   const batch = useMemo(() => batchCookSuggestions(plan), [plan]);
 
-  function regenerate() {
-    const wk = generateWeekPlan({ startDateISO: startDate, rules, repeatWindowProtein, repeatWindowTitle });
-    setState({ ...wk, startDate, servings, rules, repeatWindowProtein, repeatWindowTitle });
+  async function generateWithAI() {
+    setAiLoading(true);
+    setAiError(null);
+    const themeKey = THEMES[weekKeyFromDate(startDate) % THEMES.length].key;
+    try {
+      const res = await fetch("/api/generate-meals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate, servings, rules, themeKey })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "API error");
+
+      const scoredPlan = data.plan.map((day) => ({
+        ...day,
+        lunch: { ...day.lunch, score: scoreMeal(day.lunch) },
+        dinner: { ...day.dinner, score: scoreMeal(day.dinner) }
+      }));
+
+      setState({ plan: scoredPlan, themeKey, startDate, servings, rules, repeatWindowProtein, repeatWindowTitle, source: "ai" });
+    } catch (err) {
+      setAiError(err.message);
+      const wk = generateWeekPlan({ startDateISO: startDate, rules, repeatWindowProtein, repeatWindowTitle });
+      setState({ ...wk, startDate, servings, rules, repeatWindowProtein, repeatWindowTitle, source: "local" });
+    } finally {
+      setAiLoading(false);
+    }
   }
 
-  function swapMeal(dayIndex, slot) {
+  function regenerate() {
+    generateWithAI();
+  }
+
+  async function swapMeal(dayIndex, slot) {
     if (!state) return;
-    const theme = state.themeKey;
     const planCopy = structuredClone(state.plan);
 
     const recentMeals = planCopy.slice(Math.max(0, dayIndex - 2), dayIndex).flatMap((d) => [d.lunch, d.dinner]);
-
-    const proteinHistory = [];
-    const titleHistory = [];
-
+    const avoidProteins = [];
+    const avoidTitles = [];
     for (const m of recentMeals) {
-      titleHistory.push(m.title);
-      for (const it of m.items) if (PROTEINS.includes(it.ingredientKey)) proteinHistory.push(it.ingredientKey);
+      avoidTitles.push(m.title);
+      for (const it of m.items) if (PROTEINS.includes(it.ingredientKey)) avoidProteins.push(it.ingredientKey);
     }
 
-    const newMeal = buildMeal({
-      type: slot,
-      theme,
-      rules,
-      avoidProteinSet: new Set(proteinHistory.slice(-repeatWindowProtein)),
-      avoidMainTitleSet: new Set(titleHistory.slice(-repeatWindowTitle))
-    });
+    try {
+      const res = await fetch("/api/swap-meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot, themeKey: state.themeKey, rules, servings, avoidProteins, avoidTitles })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "API error");
+      planCopy[dayIndex][slot] = { ...data.meal, score: scoreMeal(data.meal) };
+    } catch {
+      const newMeal = buildMeal({
+        type: slot,
+        theme: state.themeKey,
+        rules,
+        avoidProteinSet: new Set(avoidProteins.slice(-repeatWindowProtein)),
+        avoidMainTitleSet: new Set(avoidTitles.slice(-repeatWindowTitle))
+      });
+      planCopy[dayIndex][slot] = newMeal;
+    }
 
-    planCopy[dayIndex][slot] = newMeal;
     setState({ ...state, plan: planCopy });
   }
 
@@ -669,6 +820,58 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, servings, rules, repeatWindowProtein, repeatWindowTitle]);
 
+  async function shopOnInstacart() {
+    setInstacartLoading(true);
+    setInstacartUrl(null);
+    setInstacartError(null);
+    try {
+      const res = await fetch("/api/instacart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groceryList,
+          weekStart: startDate,
+          appUrl: window.location.origin
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Instacart API error");
+      setInstacartUrl(data.url);
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setInstacartError(err.message);
+    } finally {
+      setInstacartLoading(false);
+    }
+  }
+
+  function downloadHEBPlan() {
+    const plan = exportToHEBPlan(groceryList, servings, rules);
+    const blob = new Blob([JSON.stringify(plan, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `meal-ops-heb-${plan.week_start}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function sendToLocalAgent() {
+    setHebStatus("sending");
+    const plan = exportToHEBPlan(groceryList, servings, rules);
+    try {
+      const res = await fetch("http://localhost:8000/shopping/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ grocery_plan: plan })
+      });
+      if (!res.ok) throw new Error(`Agent responded ${res.status}`);
+      setHebStatus("success");
+    } catch {
+      setHebStatus("error");
+    }
+  }
+
   const readiness = useMemo(() => {
     const health = clamp(Math.round((weekScoreAvg / 10) * 10), 0, 10);
     const executionRisk = prepLoad;
@@ -681,12 +884,32 @@ export default function Page() {
     <div style={styles.shell}>
       <style>{css}</style>
 
+      {aiLoading && (
+        <div style={styles.loadingOverlay}>
+          <div style={styles.loadingBox}>
+            <div className="spinnerRing" />
+            <div style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
+              AI is crafting your meal plan…
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 6 }}>
+              Building 7 days of anti-inflammatory meals with real recipes
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.container}>
+        {aiError && (
+          <div style={styles.errorBanner}>
+            ⚠ AI generation failed — showing locally generated plan. ({aiError})
+          </div>
+        )}
         <div style={styles.header}>
           <div>
             <h1 style={styles.h1}>Meal Ops Board</h1>
             <div style={styles.sub}>
               7-day lunch/dinner rotation • Auto grocery list • Anti-inflammatory scoring • Dad-grade execution dashboard
+              {state?.source === "ai" && <span style={styles.aiBadge}>✦ AI-Powered</span>}
             </div>
           </div>
 
@@ -849,10 +1072,110 @@ export default function Page() {
 
           {/* GROCERY */}
           <div className="card">
-            <div className="cardTitle">Grocery List</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div className="cardTitle" style={{ margin: 0 }}>Grocery List</div>
+              <button
+                style={styles.btnInstacart}
+                onClick={() => { setShowShopPanel((v) => !v); setInstacartError(null); }}
+              >
+                🛒 Shop on Instacart
+              </button>
+            </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.70)" }}>
               Auto-summed from the plan × servings.
             </div>
+
+            {showShopPanel && (
+              <div style={styles.instacartPanel}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                  <div style={{ fontWeight: 800, fontSize: 14, color: "rgba(255,255,255,0.95)" }}>
+                    Shop on Instacart
+                  </div>
+                  <span style={styles.instacartBadge}>HEB • Whole Foods • 85,000+ stores</span>
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 14, lineHeight: 1.6 }}>
+                  Sends your full grocery list to Instacart — your customer picks their store,
+                  marks pantry items they already have, and checks out. You earn 5% affiliate commission on every order.
+                </div>
+
+                {/* Primary CTA */}
+                <button
+                  style={instacartLoading ? styles.btnSecondary : styles.btnInstacartLarge}
+                  onClick={shopOnInstacart}
+                  disabled={instacartLoading}
+                >
+                  {instacartLoading ? "Building your cart…" : `Send ${groceryList.length} items to Instacart →`}
+                </button>
+
+                {/* Success state */}
+                {instacartUrl && (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ fontSize: 12, color: "#34d399", marginBottom: 6 }}>
+                      ✓ Cart created! Link opens in a new tab.
+                    </div>
+                    <a
+                      href={instacartUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", wordBreak: "break-all" }}
+                    >
+                      {instacartUrl}
+                    </a>
+                  </div>
+                )}
+
+                {/* Error state */}
+                {instacartError && (
+                  <div style={{ marginTop: 10, fontSize: 12, color: "#fb7185" }}>
+                    {instacartError.includes("not configured")
+                      ? "API key not set yet — add INSTACART_API_KEY to .env.local when your key arrives."
+                      : `Error: ${instacartError}`}
+                  </div>
+                )}
+
+                {/* Divider — HEB local agent as secondary */}
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 14, paddingTop: 12 }}>
+                  <button
+                    style={{ ...styles.btnSecondary, fontSize: 11, padding: "6px 10px" }}
+                    onClick={() => setShowHEBAgent((v) => !v)}
+                  >
+                    {showHEBAgent ? "▲ Hide" : "▼ Advanced"}: Local HEB Agent
+                  </button>
+
+                  {showHEBAgent && (
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.60)", marginBottom: 8, lineHeight: 1.5 }}>
+                        Run the strands-agent-shopper locally to automate HEB directly via browser extension.
+                        Requires Python + AWS Bedrock.
+                      </div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button style={styles.btnSecondary} onClick={downloadHEBPlan}>
+                          Download grocery_plan.json
+                        </button>
+                        <button
+                          style={hebStatus === "success" ? styles.btnActive : styles.btnSecondary}
+                          onClick={sendToLocalAgent}
+                          disabled={hebStatus === "sending"}
+                        >
+                          {hebStatus === "sending" ? "Sending…" : "Send to Local Agent (localhost:8000)"}
+                        </button>
+                      </div>
+                      {hebStatus === "success" && (
+                        <div style={{ fontSize: 12, color: "#34d399", marginTop: 8 }}>
+                          ✓ Sent! The HEB extension will start shopping.
+                        </div>
+                      )}
+                      {hebStatus === "error" && (
+                        <div style={{ fontSize: 12, color: "#fb7185", marginTop: 8 }}>
+                          Agent not reachable. Run <code style={{ background: "rgba(255,255,255,0.10)", padding: "1px 4px", borderRadius: 4 }}>python server.py</code> in the strands-agent-shopper folder first.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div style={{ maxHeight: 520, overflow: "auto", marginTop: 10 }}>
               <table className="table">
@@ -867,7 +1190,7 @@ export default function Page() {
                     <tr key={idx}>
                       <td>{label(g.ingredientKey)}</td>
                       <td style={{ color: "rgba(255,255,255,0.72)" }}>
-                        {formatAmount(g.amount)} {g.unit}
+                        {formatAmount(g.amount, g.unit)} {g.unit}
                       </td>
                     </tr>
                   ))}
@@ -990,9 +1313,22 @@ export default function Page() {
                         {d.lunch.items.slice(0, 6).map((it) => label(it.ingredientKey)).join(" • ")}
                         {d.lunch.items.length > 6 ? " • …" : ""}
                       </div>
-                      <div style={{ marginTop: 8 }}>
-                        <button style={styles.btnSecondary} onClick={() => swapMeal(d.dayIndex, "lunch")}>Swap Lunch</button>
+                      <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                        <button style={styles.btnSecondary} onClick={() => swapMeal(d.dayIndex, "lunch")}>Swap</button>
+                        {d.lunch.steps?.length > 0 && (
+                          <button
+                            style={expandedMealId === d.lunch.id ? styles.btnActive : styles.btnSecondary}
+                            onClick={() => setExpandedMealId(expandedMealId === d.lunch.id ? null : d.lunch.id)}
+                          >
+                            {expandedMealId === d.lunch.id ? "Hide Recipe" : "Recipe"}
+                          </button>
+                        )}
                       </div>
+                      {expandedMealId === d.lunch.id && d.lunch.steps?.length > 0 && (
+                        <ol style={styles.stepsList}>
+                          {d.lunch.steps.map((s, i) => <li key={i} style={styles.stepsItem}>{s}</li>)}
+                        </ol>
+                      )}
                     </td>
                     <td><span className={scoreBadgeClass(d.lunch.score)}>{d.lunch.score}</span></td>
 
@@ -1002,9 +1338,22 @@ export default function Page() {
                         {d.dinner.items.slice(0, 6).map((it) => label(it.ingredientKey)).join(" • ")}
                         {d.dinner.items.length > 6 ? " • …" : ""}
                       </div>
-                      <div style={{ marginTop: 8 }}>
-                        <button style={styles.btnSecondary} onClick={() => swapMeal(d.dayIndex, "dinner")}>Swap Dinner</button>
+                      <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                        <button style={styles.btnSecondary} onClick={() => swapMeal(d.dayIndex, "dinner")}>Swap</button>
+                        {d.dinner.steps?.length > 0 && (
+                          <button
+                            style={expandedMealId === d.dinner.id ? styles.btnActive : styles.btnSecondary}
+                            onClick={() => setExpandedMealId(expandedMealId === d.dinner.id ? null : d.dinner.id)}
+                          >
+                            {expandedMealId === d.dinner.id ? "Hide Recipe" : "Recipe"}
+                          </button>
+                        )}
                       </div>
+                      {expandedMealId === d.dinner.id && d.dinner.steps?.length > 0 && (
+                        <ol style={styles.stepsList}>
+                          {d.dinner.steps.map((s, i) => <li key={i} style={styles.stepsItem}>{s}</li>)}
+                        </ol>
+                      )}
                     </td>
                     <td><span className={scoreBadgeClass(d.dinner.score)}>{d.dinner.score}</span></td>
                   </tr>
@@ -1069,6 +1418,78 @@ const styles = {
     borderRadius: 12,
     padding: "9px 12px",
     cursor: "pointer"
+  },
+  btnInstacart: {
+    background: "linear-gradient(180deg, rgba(0,175,80,0.32), rgba(0,175,80,0.16))",
+    border: "1px solid rgba(0,175,80,0.50)",
+    color: "rgba(255,255,255,0.95)",
+    borderRadius: 12, padding: "7px 14px",
+    cursor: "pointer", fontSize: 12, fontWeight: 800,
+    letterSpacing: 0.2
+  },
+  btnInstacartLarge: {
+    background: "linear-gradient(180deg, rgba(0,175,80,0.40), rgba(0,175,80,0.22))",
+    border: "1px solid rgba(0,175,80,0.60)",
+    color: "#fff",
+    borderRadius: 14, padding: "12px 20px",
+    cursor: "pointer", fontSize: 14, fontWeight: 800,
+    width: "100%", textAlign: "center",
+    boxShadow: "0 4px 20px rgba(0,175,80,0.20)"
+  },
+  instacartPanel: {
+    background: "rgba(0,175,80,0.06)",
+    border: "1px solid rgba(0,175,80,0.22)",
+    borderRadius: 14, padding: 16, marginTop: 12, marginBottom: 4
+  },
+  instacartBadge: {
+    fontSize: 10, fontWeight: 700, letterSpacing: 0.4,
+    color: "#4ade80",
+    background: "rgba(0,175,80,0.15)",
+    border: "1px solid rgba(0,175,80,0.30)",
+    borderRadius: 999, padding: "2px 8px"
+  },
+  loadingOverlay: {
+    position: "fixed", inset: 0, zIndex: 999,
+    background: "rgba(11,18,32,0.88)",
+    backdropFilter: "blur(6px)",
+    display: "flex", alignItems: "center", justifyContent: "center"
+  },
+  loadingBox: {
+    display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    borderRadius: 20, padding: "32px 40px",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.40)"
+  },
+  aiBadge: {
+    marginLeft: 10,
+    background: "linear-gradient(90deg, rgba(167,139,250,0.30), rgba(52,211,153,0.20))",
+    border: "1px solid rgba(167,139,250,0.40)",
+    borderRadius: 999, padding: "2px 10px",
+    fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
+    color: "#c4b5fd"
+  },
+  errorBanner: {
+    background: "rgba(251,113,133,0.12)",
+    border: "1px solid rgba(251,113,133,0.30)",
+    borderRadius: 12, padding: "10px 14px",
+    fontSize: 12, color: "#fb7185", marginBottom: 10
+  },
+  btnActive: {
+    background: "linear-gradient(180deg, rgba(167,139,250,0.30), rgba(167,139,250,0.15))",
+    border: "1px solid rgba(167,139,250,0.45)",
+    color: "#c4b5fd",
+    borderRadius: 12, padding: "9px 12px", cursor: "pointer"
+  },
+  stepsList: {
+    margin: "10px 0 0 16px",
+    padding: 0,
+    borderLeft: "2px solid rgba(52,211,153,0.30)"
+  },
+  stepsItem: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 12, lineHeight: 1.6,
+    marginBottom: 6, paddingLeft: 8
   },
   suppHeader: {
     display: "flex",
@@ -1205,5 +1626,12 @@ const css = `
   @media (max-width: 980px){
     .grid3 { grid-template-columns: 1fr !important; }
     .suppGrid { grid-template-columns: 1fr !important; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinnerRing {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.10);
+    border-top-color: #34d399;
+    animation: spin 0.8s linear infinite;
   }
 `;
