@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 async function callOpenAI(prompt) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -145,6 +146,14 @@ function validateAndCleanPlan(raw, startDate, days) {
 }
 
 export async function POST(request) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
+
+  const user = await currentUser();
+  if (!user?.publicMetadata?.isPro) {
+    return Response.json({ error: "Pro required", upgrade: true }, { status: 403 });
+  }
+
   const { startDate, servings, rules, themeKey, days = 7 } = await request.json();
 
   const prompt = buildPrompt({ startDate, servings, rules, themeKey, days });

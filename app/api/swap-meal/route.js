@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 async function callOpenAI(prompt) {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -31,6 +32,14 @@ const ALL_VALID_KEYS = new Set([
 ]);
 
 export async function POST(request) {
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
+
+  const user = await currentUser();
+  if (!user?.publicMetadata?.isPro) {
+    return Response.json({ error: "Pro required", upgrade: true }, { status: 403 });
+  }
+
   const { slot, themeKey, rules, servings, avoidProteins = [], avoidTitles = [] } = await request.json();
 
   const THEME_NAMES = {

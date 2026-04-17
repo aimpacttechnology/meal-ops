@@ -664,7 +664,8 @@ function generateWeekPlan({ startDateISO, rules, repeatWindowProtein, repeatWind
 // UI
 // -----------------------
 export default function Page() {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const isPro = user?.publicMetadata?.isPro === true;
   const [startDate, setStartDate] = useState(todayISO());
   const [servings, setServings] = useState(2);
 
@@ -680,6 +681,10 @@ export default function Page() {
 
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [showUpgradeBanner, setShowUpgradeBanner] = useState(
+    typeof window !== "undefined" && window.location.search.includes("upgraded=true")
+  );
   const [expandedMealId, setExpandedMealId] = useState(null);
   const [showShopPanel, setShowShopPanel] = useState(false);
   const [hebStatus, setHebStatus] = useState(null);
@@ -743,6 +748,7 @@ export default function Page() {
         body: JSON.stringify({ startDate, servings, rules, themeKey })
       });
       const data = await res.json();
+      if (res.status === 403 && data.upgrade) throw new Error("UPGRADE_REQUIRED");
       if (!res.ok) throw new Error(data.error ?? "API error");
 
       const scoredPlan = data.plan.map((day) => ({
@@ -758,6 +764,19 @@ export default function Page() {
       setState({ ...wk, startDate, servings, rules, repeatWindowProtein, repeatWindowTitle, source: "local" });
     } finally {
       setAiLoading(false);
+    }
+  }
+
+  async function goUpgrade() {
+    setUpgradeLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Checkout error:", err);
+    } finally {
+      setUpgradeLoading(false);
     }
   }
 
@@ -923,9 +942,23 @@ export default function Page() {
       )}
 
       <div style={styles.container}>
-        {aiError && (
+        {showUpgradeBanner && (
+          <div style={styles.successBanner}>
+            ✅ Welcome to Meal Ops Pro! AI meal generation is now unlocked.
+            <button style={{ marginLeft: 16, background: "none", border: "none", color: "inherit", cursor: "pointer", fontSize: 14 }} onClick={() => setShowUpgradeBanner(false)}>✕</button>
+          </div>
+        )}
+        {aiError && aiError !== "UPGRADE_REQUIRED" && (
           <div style={styles.errorBanner}>
             ⚠ AI generation failed — showing locally generated plan. ({aiError})
+          </div>
+        )}
+        {aiError === "UPGRADE_REQUIRED" && (
+          <div style={styles.upgradeBanner}>
+            ✦ AI meal generation is a <b>Pro feature</b> — showing a locally generated plan.
+            <button style={styles.upgradeBtn} onClick={goUpgrade} disabled={upgradeLoading}>
+              {upgradeLoading ? "Loading…" : "Upgrade to Pro — $9.99/mo"}
+            </button>
           </div>
         )}
         <div style={styles.header}>
@@ -938,6 +971,11 @@ export default function Page() {
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            {!isPro && (
+              <button style={styles.upgradeBtn} onClick={goUpgrade} disabled={upgradeLoading}>
+                {upgradeLoading ? "Loading…" : "⬆ Upgrade to Pro"}
+              </button>
+            )}
             <button style={styles.btn} onClick={regenerate}>Regenerate Week</button>
             <button
               style={styles.btnSecondary}
@@ -1420,6 +1458,9 @@ const styles = {
   landingWrap: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 24, textAlign: "center" },
   landingTitle: { fontSize: 48, fontWeight: 700, margin: "0 0 16px", letterSpacing: 1 },
   landingSub: { fontSize: 18, color: "rgba(255,255,255,0.72)", maxWidth: 500, margin: 0, lineHeight: 1.6 },
+  successBanner: { background: "rgba(34,197,94,0.18)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 14, color: "#86efac", display: "flex", alignItems: "center" },
+  upgradeBanner: { background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 14, color: "#fde68a", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" },
+  upgradeBtn: { background: "linear-gradient(135deg,#f59e0b,#d97706)", color: "#000", border: "none", borderRadius: 6, padding: "7px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" },
   container: { maxWidth: 1200, margin: "0 auto", padding: 18 },
   header: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, margin: "6px 0 14px", flexWrap: "wrap" },
   h1: { margin: 0, fontSize: 22, letterSpacing: 0.4 },
