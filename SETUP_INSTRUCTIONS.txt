@@ -1,0 +1,103 @@
+================================================================
+  MEAL OPS — SETUP INSTRUCTIONS (Clerk Auth + Stripe Billing)
+================================================================
+
+----------------------------------------------------------------
+STEP 1 — CLERK (User Login / Accounts)
+----------------------------------------------------------------
+
+1. Go to https://clerk.com and click "Sign Up" (free account)
+
+2. After signing in, click "Create application"
+   - Application name: Meal Ops
+   - Toggle ON: Email, Google (leave others off for now)
+   - Click "Create application"
+
+3. You'll land on the Quickstart page. Look for the box labeled
+   "API Keys" — you'll see two values:
+
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY   (starts with pk_test_...)
+   CLERK_SECRET_KEY                    (starts with sk_test_...)
+
+4. Open your .env.local file and add both lines:
+
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_YOUR_KEY_HERE
+   CLERK_SECRET_KEY=sk_test_YOUR_KEY_HERE
+
+5. In Vercel dashboard (https://vercel.com):
+   - Open your "meal-ops" project
+   - Go to Settings → Environment Variables
+   - Add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY  (value from step 3)
+   - Add CLERK_SECRET_KEY                   (value from step 3)
+   - Make sure both are checked for: Production, Preview, Development
+
+
+----------------------------------------------------------------
+STEP 2 — STRIPE (Payments / Subscriptions)
+----------------------------------------------------------------
+
+1. Go to https://stripe.com and create a free account
+
+2. From the Stripe dashboard, go to:
+   Developers → API Keys
+   You'll see:
+   - Publishable key  (starts with pk_test_...)
+   - Secret key       (starts with sk_test_...) — click "Reveal"
+
+3. Add to .env.local:
+
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY_HERE
+   STRIPE_SECRET_KEY=sk_test_YOUR_KEY_HERE
+   STRIPE_WEBHOOK_SECRET=   (leave blank for now — filled in Step 5)
+
+4. Create your product in Stripe:
+   - Go to Product catalog → + Add product
+   - Name: Meal Ops Pro
+   - Pricing: $10.00 / month  (Recurring)
+   - Click Save product
+   - Copy the "Price ID" (looks like price_1ABC...) and add to .env.local:
+
+   STRIPE_PRICE_ID=price_1ABC...
+
+5. Set up the webhook (so Stripe tells your app when someone pays):
+   - Go to Developers → Webhooks → + Add endpoint
+   - Endpoint URL: https://meal-ops.vercel.app/api/stripe/webhook
+   - Select events: checkout.session.completed, customer.subscription.deleted
+   - Click Add endpoint
+   - On the next screen, click "Reveal" under Signing secret
+   - Copy it and fill in .env.local:
+
+   STRIPE_WEBHOOK_SECRET=whsec_YOUR_SECRET_HERE
+
+6. Add all 4 Stripe env vars to Vercel (same as Step 1 → point 5)
+
+
+----------------------------------------------------------------
+STEP 3 — AFTER BOTH ARE SET UP
+----------------------------------------------------------------
+
+1. Restart your local dev server:
+   - Stop it with Ctrl+C in the terminal
+   - Run: npm run dev
+
+2. Open http://localhost:3000
+   - You should see a "Sign In" button in the top right
+   - Create a test account
+
+3. To test Stripe payments locally you'll need the Stripe CLI:
+   - Download from https://stripe.com/docs/stripe-cli
+   - Run: stripe listen --forward-to localhost:3000/api/stripe/webhook
+   - Use test card: 4242 4242 4242 4242  exp: any future date  CVC: any 3 digits
+
+4. When everything works locally, push to Vercel:
+   git add .
+   git commit -m "Add Clerk auth and Stripe billing"
+   git push
+
+
+----------------------------------------------------------------
+QUESTIONS?
+----------------------------------------------------------------
+Ask Claude Code — just describe what step you're on and
+paste any error messages you see.
+================================================================

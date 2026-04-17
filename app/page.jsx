@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 
 /**
  * Meal Ops Board v1.1 (Green Ops Theme)
@@ -663,6 +664,7 @@ function generateWeekPlan({ startDateISO, rules, repeatWindowProtein, repeatWind
 // UI
 // -----------------------
 export default function Page() {
+  const { isLoaded, isSignedIn } = useUser();
   const [startDate, setStartDate] = useState(todayISO());
   const [servings, setServings] = useState(2);
 
@@ -880,6 +882,28 @@ export default function Page() {
 
   const readinessClass = readiness >= 7 ? "badge good" : readiness >= 5 ? "badge warn" : "badge bad";
 
+  if (!isLoaded) return null;
+
+  if (!isSignedIn) {
+    return (
+      <div style={styles.shell}>
+        <style>{css}</style>
+        <div style={styles.landingWrap}>
+          <h1 style={styles.landingTitle}>Meal Ops</h1>
+          <p style={styles.landingSub}>AI-powered anti-inflammatory meal planning — 7-day plans, auto grocery lists, Instacart checkout.</p>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 32 }}>
+            <SignUpButton mode="modal">
+              <button style={styles.btn}>Get Started — Free</button>
+            </SignUpButton>
+            <SignInButton mode="modal">
+              <button style={styles.btnSecondary}>Sign In</button>
+            </SignInButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.shell}>
       <style>{css}</style>
@@ -913,7 +937,7 @@ export default function Page() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <button style={styles.btn} onClick={regenerate}>Regenerate Week</button>
             <button
               style={styles.btnSecondary}
@@ -925,6 +949,7 @@ export default function Page() {
             >
               Reset
             </button>
+            <UserButton afterSignOutUrl="/" />
           </div>
         </div>
 
@@ -1392,6 +1417,9 @@ const styles = {
       "radial-gradient(1000px 800px at 60% 90%, rgba(96,165,250,0.10), transparent 55%)," +
       "#0b1220"
   },
+  landingWrap: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 24, textAlign: "center" },
+  landingTitle: { fontSize: 48, fontWeight: 700, margin: "0 0 16px", letterSpacing: 1 },
+  landingSub: { fontSize: 18, color: "rgba(255,255,255,0.72)", maxWidth: 500, margin: 0, lineHeight: 1.6 },
   container: { maxWidth: 1200, margin: "0 auto", padding: 18 },
   header: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, margin: "6px 0 14px", flexWrap: "wrap" },
   h1: { margin: 0, fontSize: 22, letterSpacing: 0.4 },
