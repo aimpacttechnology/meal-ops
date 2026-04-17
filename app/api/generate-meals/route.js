@@ -9,7 +9,7 @@ async function callOpenAI(prompt) {
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      max_tokens: 4096,
+      max_tokens: 8000,
       messages: [{ role: "user", content: prompt }]
     })
   });
@@ -156,7 +156,7 @@ export async function POST(request) {
       const client = new Anthropic();
       const message = await client.messages.create({
         model: "claude-sonnet-4-6",
-        max_tokens: 4096,
+        max_tokens: 8000,
         messages: [{ role: "user", content: prompt }]
       });
       text = message.content[0]?.text ?? "";
