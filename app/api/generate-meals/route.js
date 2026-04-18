@@ -151,7 +151,9 @@ export async function POST(request) {
   if (!userId) return Response.json({ error: "Not signed in" }, { status: 401 });
 
   const user = await currentUser();
-  if (!user?.publicMetadata?.isPro) {
+  const meta = user?.publicMetadata ?? {};
+  const proActive = meta.isPro && (!meta.proExpiresAt || meta.proExpiresAt > Date.now());
+  if (!proActive) {
     return Response.json({ error: "Pro required", upgrade: true }, { status: 403 });
   }
 
