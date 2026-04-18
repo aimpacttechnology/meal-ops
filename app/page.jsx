@@ -687,11 +687,9 @@ export default function Page() {
   );
   const [expandedMealId, setExpandedMealId] = useState(null);
   const [showShopPanel, setShowShopPanel] = useState(false);
-  const [hebStatus, setHebStatus] = useState(null);
   const [instacartLoading, setInstacartLoading] = useState(false);
   const [instacartUrl, setInstacartUrl] = useState(null);
   const [instacartError, setInstacartError] = useState(null);
-  const [showHEBAgent, setShowHEBAgent] = useState(false);
 
   const [state, setState] = useState(() => {
     if (typeof window !== "undefined") {
@@ -866,32 +864,6 @@ export default function Page() {
     }
   }
 
-  function downloadHEBPlan() {
-    const plan = exportToHEBPlan(groceryList, servings, rules);
-    const blob = new Blob([JSON.stringify(plan, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `meal-ops-heb-${plan.week_start}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function sendToLocalAgent() {
-    setHebStatus("sending");
-    const plan = exportToHEBPlan(groceryList, servings, rules);
-    try {
-      const res = await fetch("http://localhost:8000/shopping/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ grocery_plan: plan })
-      });
-      if (!res.ok) throw new Error(`Agent responded ${res.status}`);
-      setHebStatus("success");
-    } catch {
-      setHebStatus("error");
-    }
-  }
 
   const readiness = useMemo(() => {
     const health = clamp(Math.round((weekScoreAvg / 10) * 10), 0, 10);
@@ -1197,46 +1169,6 @@ export default function Page() {
                   </div>
                 )}
 
-                {/* Divider — HEB local agent as secondary */}
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 14, paddingTop: 12 }}>
-                  <button
-                    style={{ ...styles.btnSecondary, fontSize: 11, padding: "6px 10px" }}
-                    onClick={() => setShowHEBAgent((v) => !v)}
-                  >
-                    {showHEBAgent ? "▲ Hide" : "▼ Advanced"}: Local HEB Agent
-                  </button>
-
-                  {showHEBAgent && (
-                    <div style={{ marginTop: 10 }}>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.60)", marginBottom: 8, lineHeight: 1.5 }}>
-                        Run the strands-agent-shopper locally to automate HEB directly via browser extension.
-                        Requires Python + AWS Bedrock.
-                      </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <button style={styles.btnSecondary} onClick={downloadHEBPlan}>
-                          Download grocery_plan.json
-                        </button>
-                        <button
-                          style={hebStatus === "success" ? styles.btnActive : styles.btnSecondary}
-                          onClick={sendToLocalAgent}
-                          disabled={hebStatus === "sending"}
-                        >
-                          {hebStatus === "sending" ? "Sending…" : "Send to Local Agent (localhost:8000)"}
-                        </button>
-                      </div>
-                      {hebStatus === "success" && (
-                        <div style={{ fontSize: 12, color: "#34d399", marginTop: 8 }}>
-                          ✓ Sent! The HEB extension will start shopping.
-                        </div>
-                      )}
-                      {hebStatus === "error" && (
-                        <div style={{ fontSize: 12, color: "#fb7185", marginTop: 8 }}>
-                          Agent not reachable. Run <code style={{ background: "rgba(255,255,255,0.10)", padding: "1px 4px", borderRadius: 4 }}>python server.py</code> in the strands-agent-shopper folder first.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 
