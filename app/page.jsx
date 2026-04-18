@@ -1089,7 +1089,7 @@ export default function Page() {
           <div>
             <h1 style={styles.h1}>Meal Ops Board</h1>
             <div style={styles.sub}>
-              7-day lunch/dinner rotation • Auto grocery list • Anti-inflammatory scoring • Dad-grade execution dashboard
+              7-day lunch/dinner rotation • Auto grocery list • Anti-inflammatory scoring
               {state?.source === "ai" && <span style={styles.aiBadge}>✦ AI-Powered</span>}
             </div>
           </div>
