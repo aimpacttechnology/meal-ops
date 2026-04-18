@@ -510,13 +510,34 @@ function aggregateGroceryList(plan, servings) {
 
   // Convert recipe units → store-friendly shopping units
   const shoppingUnitConversions = {
-    ginger:   (amt, unit) => unit === "tbsp" ? { amount: Math.ceil(amt * 0.35), unit: "oz" } : null,
-    garlic:   (amt, unit) => unit === "clove" ? { amount: Math.ceil(amt / 10), unit: "head" } : null,
-    turmeric: (amt, unit) => unit === "tsp" ? { amount: 1, unit: "jar" } : null,
-    onions:   (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 2), unit: "each" } : null,
+    // Proteins
+    eggs:          (amt) => ({ amount: Math.ceil(amt / 12), unit: "dozen" }),
+    lentils:       (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt * 0.44 * 2) / 2, unit: "lb" } : null,
+    // Vegetables
+    spinach:       (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 5), unit: "bag (5 oz)" } : null,
+    broccoli:      (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt * 3 / 16 * 10) / 10, unit: "lb" } : null,
+    zucchini:      (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 1.5), unit: "each" } : null,
+    asparagus:     (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 2), unit: "bunch" } : null,
+    cabbage:       (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 8), unit: "head" } : null,
+    peppers:       (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt), unit: "each" } : null,
+    mushrooms:     (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt * 2.5), unit: "oz" } : null,
+    greenBeans:    (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 4 * 10) / 10, unit: "lb" } : null,
+    sweetPotato:   (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 1.5), unit: "each" } : null,
+    cauliflowerRice: (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 2.5), unit: "bag (10 oz)" } : null,
+    tomatoes:      (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 0.75), unit: "each" } : null,
+    // Pantry
+    oliveOil:      () => ({ amount: 1, unit: "bottle" }),
+    garlic:        (amt, unit) => unit === "clove" ? { amount: Math.max(1, Math.ceil(amt / 10)), unit: "head" } : null,
+    onions:        (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 2), unit: "each" } : null,
+    ginger:        (amt, unit) => unit === "tbsp" ? { amount: Math.max(1, Math.ceil(amt * 0.35)), unit: "oz" } : null,
+    turmeric:      () => ({ amount: 1, unit: "jar" }),
+    tamari:        () => ({ amount: 1, unit: "bottle" }),
+    tahini:        () => ({ amount: 1, unit: "jar" }),
+    chia:          () => ({ amount: 1, unit: "bag" }),
+    walnuts:       () => ({ amount: 1, unit: "bag" }),
   };
 
-  for (const [key, item] of map.entries()) {
+  for (const [, item] of map.entries()) {
     const convert = shoppingUnitConversions[item.ingredientKey];
     if (convert) {
       const result = convert(item.amount, item.unit);
@@ -703,6 +724,14 @@ export default function Page() {
   );
   const [expandedMealId, setExpandedMealId] = useState(null);
   const [showShopPanel, setShowShopPanel] = useState(false);
+  const [showHiddenItems, setShowHiddenItems] = useState(false);
+  const [hiddenIngredients, setHiddenIngredients] = useState(() => {
+    try {
+      const saved = localStorage.getItem("meal-ops-hidden-ingredients");
+      if (saved) return new Set(JSON.parse(saved));
+    } catch {}
+    return new Set(["oliveOil", "garlic", "onions", "turmeric", "tamari", "tahini", "chia", "walnuts"]);
+  });
   const [instacartLoading, setInstacartLoading] = useState(false);
   const [instacartUrl, setInstacartUrl] = useState(null);
   const [instacartError, setInstacartError] = useState(null);
@@ -792,6 +821,15 @@ export default function Page() {
     } finally {
       setUpgradeLoading(false);
     }
+  }
+
+  function toggleHidden(key) {
+    setHiddenIngredients(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      try { localStorage.setItem("meal-ops-hidden-ingredients", JSON.stringify([...next])); } catch {}
+      return next;
+    });
   }
 
   function regenerate() {
@@ -1194,19 +1232,59 @@ export default function Page() {
                   <tr>
                     <th>Item</th>
                     <th>Qty</th>
+                    <th style={{ width: 32 }}></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {groceryList.map((g, idx) => (
+                  {groceryList.filter(g => !hiddenIngredients.has(g.ingredientKey)).map((g, idx) => (
                     <tr key={idx}>
                       <td>{label(g.ingredientKey)}</td>
                       <td style={{ color: "rgba(255,255,255,0.72)" }}>
                         {formatAmount(g.amount, g.unit)} {g.unit}
                       </td>
+                      <td>
+                        <button
+                          onClick={() => toggleHidden(g.ingredientKey)}
+                          title="Hide — I already have this"
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.30)", fontSize: 13, padding: "0 4px" }}
+                        >✕</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              {hiddenIngredients.size > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    onClick={() => setShowHiddenItems(v => !v)}
+                    style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "rgba(255,255,255,0.45)", fontSize: 11, padding: "4px 10px", cursor: "pointer" }}
+                  >
+                    {showHiddenItems ? "▲ Hide" : "▼ Show"} {groceryList.filter(g => hiddenIngredients.has(g.ingredientKey)).length} pantry staples (already have these)
+                  </button>
+                  {showHiddenItems && (
+                    <table className="table" style={{ marginTop: 6, opacity: 0.45 }}>
+                      <tbody>
+                        {groceryList.filter(g => hiddenIngredients.has(g.ingredientKey)).map((g, idx) => (
+                          <tr key={idx}>
+                            <td style={{ textDecoration: "line-through" }}>{label(g.ingredientKey)}</td>
+                            <td style={{ color: "rgba(255,255,255,0.72)", textDecoration: "line-through" }}>
+                              {formatAmount(g.amount, g.unit)} {g.unit}
+                            </td>
+                            <td>
+                              <button
+                                onClick={() => toggleHidden(g.ingredientKey)}
+                                title="Add back to list"
+                                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", fontSize: 13, padding: "0 4px" }}
+                              >+</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="sep" />
