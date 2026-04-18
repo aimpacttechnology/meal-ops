@@ -508,6 +508,22 @@ function aggregateGroceryList(plan, servings) {
   const proteinsSet = new Set(PROTEINS);
   const vegSet = new Set(VEG);
 
+  // Convert recipe units → store-friendly shopping units
+  const shoppingUnitConversions = {
+    ginger:   (amt, unit) => unit === "tbsp" ? { amount: Math.ceil(amt * 0.35), unit: "oz" } : null,
+    garlic:   (amt, unit) => unit === "clove" ? { amount: Math.ceil(amt / 10), unit: "head" } : null,
+    turmeric: (amt, unit) => unit === "tsp" ? { amount: 1, unit: "jar" } : null,
+    onions:   (amt, unit) => unit === "cup" ? { amount: Math.ceil(amt / 2), unit: "each" } : null,
+  };
+
+  for (const [key, item] of map.entries()) {
+    const convert = shoppingUnitConversions[item.ingredientKey];
+    if (convert) {
+      const result = convert(item.amount, item.unit);
+      if (result) { item.amount = result.amount; item.unit = result.unit; }
+    }
+  }
+
   return Array.from(map.values()).sort((a, b) => {
     const aType = proteinsSet.has(a.ingredientKey) ? 2 : vegSet.has(a.ingredientKey) ? 1 : 3;
     const bType = proteinsSet.has(b.ingredientKey) ? 2 : vegSet.has(b.ingredientKey) ? 1 : 3;

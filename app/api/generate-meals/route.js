@@ -74,6 +74,7 @@ Amount rules (amounts are PER SINGLE SERVING except pantry):
 
 Variety rules:
 - Do NOT repeat the same protein more than twice across all ${days * 2} meals
+- Do NOT use avocado in more than 3 meals total across the whole week
 - Every meal title must be unique and specific — not generic like "Protein Bowl"
 - Lean into the weekly theme in both flavors and cooking style
 - Lunch = lighter (1 protein, 2 veg, 2-3 pantry items)
