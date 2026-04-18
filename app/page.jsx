@@ -15,6 +15,24 @@ import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
  */
 
 // -----------------------
+// Desserts
+// -----------------------
+const DESSERTS = [
+  { name: "Dark Chocolate Bark with Walnuts & Sea Salt", note: "85%+ cacao. Rich in flavonoids and magnesium. One or two squares satisfies without a sugar spike.", tags: ["Gluten-Free", "Dairy-Free", "5 min"] },
+  { name: "Chia Seed Pudding with Berries", note: "Coconut milk base, sweetened with a touch of raw honey. Prep the night before — ready in the morning.", tags: ["Gluten-Free", "Dairy-Free", "Omega-3", "Meal Prep"] },
+  { name: "Avocado Chocolate Mousse", note: "Blended avocado, cacao powder, maple syrup, vanilla. Creamy, rich, and packed with healthy fats.", tags: ["Gluten-Free", "Dairy-Free", "10 min"] },
+  { name: "Baked Cinnamon Apples with Walnuts", note: "Core apples, stuff with walnuts and cinnamon, bake 25 min. Tastes indulgent — totally clean.", tags: ["Gluten-Free", "Dairy-Free", "Gut-Friendly"] },
+  { name: "Frozen Banana Nice Cream", note: "Blend frozen bananas until smooth. Add almond butter or cacao for variations. No added sugar.", tags: ["Gluten-Free", "Dairy-Free", "Kid-Friendly"] },
+  { name: "Coconut Milk Panna Cotta with Mango", note: "Gelatin-set coconut milk with turmeric and ginger. Top with fresh mango. Elegant and anti-inflammatory.", tags: ["Gluten-Free", "Dairy-Free", "Gut-Friendly"] },
+  { name: "Golden Milk Chia Flan", note: "Turmeric, ginger, coconut milk, and chia set into a soft flan. Warm spices calm inflammation overnight.", tags: ["Gluten-Free", "Dairy-Free", "Anti-Inflammatory"] },
+  { name: "Berry & Coconut Cream Parfait", note: "Layer mixed berries with whipped coconut cream. Add a sprinkle of cacao nibs for crunch.", tags: ["Gluten-Free", "Dairy-Free", "High Antioxidant"] },
+  { name: "Almond Flour Brownies", note: "Almond flour, cacao, eggs, coconut oil, and a touch of maple syrup. Dense, fudgy, grain-free.", tags: ["Gluten-Free", "15 min", "Crowd Pleaser"] },
+  { name: "Poached Pears with Ginger & Cardamom", note: "Pears poached in water with fresh ginger, cardamom, and cinnamon. Elegant, warming, nearly zero sugar.", tags: ["Gluten-Free", "Dairy-Free", "Low Sugar"] },
+  { name: "Tahini Stuffed Medjool Dates", note: "Pit dates, stuff with tahini and a walnut half. Natural sugar with fat and protein to blunt the spike.", tags: ["Gluten-Free", "Dairy-Free", "2 min"] },
+  { name: "Turmeric & Black Pepper Mango Sorbet", note: "Blend frozen mango with turmeric and black pepper. Black pepper activates curcumin absorption.", tags: ["Gluten-Free", "Dairy-Free", "High Antioxidant"] },
+];
+
+// -----------------------
 // Supplements
 // -----------------------
 const SUPPLEMENTS = {
@@ -725,6 +743,10 @@ export default function Page() {
   const [expandedMealId, setExpandedMealId] = useState(null);
   const [showShopPanel, setShowShopPanel] = useState(false);
   const [showHiddenItems, setShowHiddenItems] = useState(false);
+  const [favoriteMeals, setFavoriteMeals] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("meal-ops-favorites") ?? "[]"); } catch { return []; }
+  });
+  const [showFavorites, setShowFavorites] = useState(false);
   const [hiddenIngredients, setHiddenIngredients] = useState(() => {
     try {
       const saved = localStorage.getItem("meal-ops-hidden-ingredients");
@@ -821,6 +843,15 @@ export default function Page() {
     } finally {
       setUpgradeLoading(false);
     }
+  }
+
+  function toggleFavorite(meal) {
+    setFavoriteMeals(prev => {
+      const exists = prev.some(m => m.id === meal.id || m.title === meal.title);
+      const next = exists ? prev.filter(m => m.title !== meal.title) : [...prev, meal];
+      try { localStorage.setItem("meal-ops-favorites", JSON.stringify(next)); } catch {}
+      return next;
+    });
   }
 
   function toggleHidden(key) {
@@ -1412,6 +1443,11 @@ export default function Page() {
                             {expandedMealId === d.lunch.id ? "Hide Recipe" : "Recipe"}
                           </button>
                         )}
+                        <button
+                          style={{ ...styles.btnSecondary, color: favoriteMeals.some(m => m.title === d.lunch.title) ? "#f87171" : undefined }}
+                          onClick={() => toggleFavorite(d.lunch)}
+                          title="Save to favorites"
+                        >{favoriteMeals.some(m => m.title === d.lunch.title) ? "♥" : "♡"}</button>
                       </div>
                       {expandedMealId === d.lunch.id && d.lunch.steps?.length > 0 && (
                         <ol style={styles.stepsList}>
@@ -1437,6 +1473,11 @@ export default function Page() {
                             {expandedMealId === d.dinner.id ? "Hide Recipe" : "Recipe"}
                           </button>
                         )}
+                        <button
+                          style={{ ...styles.btnSecondary, color: favoriteMeals.some(m => m.title === d.dinner.title) ? "#f87171" : undefined }}
+                          onClick={() => toggleFavorite(d.dinner)}
+                          title="Save to favorites"
+                        >{favoriteMeals.some(m => m.title === d.dinner.title) ? "♥" : "♡"}</button>
                       </div>
                       {expandedMealId === d.dinner.id && d.dinner.steps?.length > 0 && (
                         <ol style={styles.stepsList}>
@@ -1457,6 +1498,66 @@ export default function Page() {
             <span className="pill">Scoring: <b>0–10</b> (higher = more anti-inflammatory leaning)</span>
             <span className="pill">Rotation: <b>Theme</b> changes each week automatically</span>
             <span className="pill">Swap: uses recent history to avoid repeats</span>
+          </div>
+        </div>
+
+        {/* FAVORITES */}
+        <div className="card" style={{ marginTop: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="cardTitle" style={{ margin: 0 }}>♥ Favorite Meals</div>
+            <button style={styles.btnSecondary} onClick={() => setShowFavorites(v => !v)}>
+              {showFavorites ? "Hide" : `Show (${favoriteMeals.length})`}
+            </button>
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.60)", marginTop: 4 }}>
+            Hit ♡ on any meal in the plan to save it here. Favorites persist week to week.
+          </div>
+          {showFavorites && (
+            favoriteMeals.length === 0
+              ? <div style={{ marginTop: 12, fontSize: 13, color: "rgba(255,255,255,0.45)" }}>No favorites saved yet — tap ♡ on any meal above.</div>
+              : <div style={{ marginTop: 12 }}>
+                  {favoriteMeals.map((meal, idx) => (
+                    <div key={idx} style={styles.favCard}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 14 }}>{meal.title}</div>
+                          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.60)", marginTop: 3 }}>
+                            {meal.items?.slice(0, 6).map(it => label(it.ingredientKey)).join(" • ")}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => toggleFavorite(meal)}
+                          style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: 16, flexShrink: 0 }}
+                          title="Remove from favorites"
+                        >♥</button>
+                      </div>
+                      {meal.steps?.length > 0 && (
+                        <ol style={{ ...styles.stepsList, marginTop: 8 }}>
+                          {meal.steps.map((s, i) => <li key={i} style={styles.stepsItem}>{s}</li>)}
+                        </ol>
+                      )}
+                    </div>
+                  ))}
+                </div>
+          )}
+        </div>
+
+        {/* DESSERTS */}
+        <div className="card" style={{ marginTop: 12 }}>
+          <div className="cardTitle">Anti-Inflammatory Desserts</div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.60)", marginBottom: 12 }}>
+            Satisfy the sweet tooth without spiking inflammation. All options are gluten-free friendly and low glycemic.
+          </div>
+          <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+            {DESSERTS.map((d, i) => (
+              <div key={i} style={styles.dessertCard}>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>{d.name}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 6 }}>{d.note}</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {d.tags.map(t => <span key={t} style={styles.dessertTag}>{t}</span>)}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -1487,6 +1588,9 @@ const styles = {
   successBanner: { background: "rgba(34,197,94,0.18)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 14, color: "#86efac", display: "flex", alignItems: "center" },
   upgradeBanner: { background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", borderRadius: 8, padding: "10px 16px", marginBottom: 12, fontSize: 14, color: "#fde68a", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" },
   upgradeBtn: { background: "linear-gradient(135deg,#f59e0b,#d97706)", color: "#000", border: "none", borderRadius: 6, padding: "7px 16px", fontWeight: 700, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" },
+  favCard: { background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.20)", borderRadius: 10, padding: "12px 14px", marginBottom: 10 },
+  dessertCard: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 10, padding: "12px 14px" },
+  dessertTag: { background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 4, padding: "2px 7px", fontSize: 10, color: "#6ee7b7" },
   container: { maxWidth: 1200, margin: "0 auto", padding: 18 },
   header: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, margin: "6px 0 14px", flexWrap: "wrap" },
   h1: { margin: 0, fontSize: 22, letterSpacing: 0.4 },
